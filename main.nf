@@ -178,6 +178,6 @@ workflow {
     zipped_variants_channel = BGZIP_INDEX_VARIANTS(variants_channel)
 
     // prioritize the variants using exomiser
-    PRIORITIZE_VARIANTS(variants_channel,file(params.phenotype_file))
+    PRIORITIZE_VARIANTS(zipped_variants_channel,file(params.phenotype_file))
 
 }
