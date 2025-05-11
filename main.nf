@@ -102,8 +102,7 @@ process PRIORITIZE_VARIANTS {
     publishDir 'results/prioritized_variants', mode: 'copy'
     
     input:
-    path vcf
-    path tbi
+    tuple path("variants.vcf.gz"), path("variants.vcf.gz.tbi") 
     path phenotype_file  // A file containing HPO terms
     
     output:
@@ -119,7 +118,7 @@ process PRIORITIZE_VARIANTS {
     ---
     analysis:
       genomeAssembly: ${params.genome_assembly}
-      vcf: ${vcf}
+      vcf: variants.vcf.gz
       pedigree: ${params.pedigree}
       proband: ${params.proband}
       hpoIds: \$(cat ${phenotype_file} | paste -sd, -)
@@ -179,10 +178,6 @@ workflow {
     zipped_variants_channel = BGZIP_INDEX_VARIANTS(variants_channel)
 
     // prioritize the variants using exomiser
-    PRIORITIZE_VARIANTS(
-        variants_channel[0],  // VCF file
-        variants_channel[1],  // Index file
-        file(params.phenotype_file)  // Phenotype file
-    )
+    PRIORITIZE_VARIANTS(variants_channel,file(params.phenotype_file))
 
 }
