@@ -53,7 +53,7 @@ process GET_STATS {
 
     script:
     """
-    alignstats -p -C -i ${bam} -o ${sample}.stats.txt
+    alignstats -i ${bam} -o ${sample}.stats.txt -p -W -P ${task.cpus} -t ${params.target_regions}
     """
 }
 
@@ -72,7 +72,7 @@ process CALL_SMALL_VARIANTS {
     def bam_files_str = bam_files.join(' ')
 
     """
-    freebayes --fasta-reference ${params.reference} ${bam_files_str}  \
+    freebayes-parallel <(awk '{{print \$1":"\$2"-"\$3}}' ${params.target_regions}) ${task.cpus} --fasta-reference ${params.reference} ${bam_files_str}  \
     | vcffilter -f "QUAL > 1 & QUAL / AO > 10 & SAF > 0 & SAR > 0 & RPR > 1 & RPL > 1" -t "PASS" -F "FAIL" \
     > variants.vcf
     """
