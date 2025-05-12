@@ -1,6 +1,7 @@
-// Description: A Nextflow script to run a workflow that aligns a CRAM file using BWA-MEM.
+// Description: Run a workflow that aligns a CRAM file using BWA-MEM.
 nextflow.enable.dsl = 2
-include { BGZIP_INDEX_VARIANTS as bgzip_index_raw; BGZIP_INDEX_VARIANTS as bgzip_index_standard } from "./modules/index"
+include { BGZIP_INDEX_VARIANTS as bgzip_index_raw; 
+          BGZIP_INDEX_VARIANTS as bgzip_index_standard } from "./modules/index"
 
 process EXTRACT_FASTQ {
     tag "$sample"
@@ -10,12 +11,13 @@ process EXTRACT_FASTQ {
     tuple val(sample), path(cram)
 
     output:
-    tuple val(sample), path("${sample}_1.fastq.gz"), path("${sample}_2.fastq.gz") 
+    tuple val(sample),path("${sample}_1.fastq.gz"),path("${sample}_2.fastq.gz") 
     
     script:
     """
     samtools sort -n -@ ${task.cpus} ${cram} \
-    | samtools fastq -@ ${task.cpus} -1 ${sample}_1.fastq.gz -2 ${sample}_2.fastq.gz - \
+    | samtools fastq -@ ${task.cpus} \
+      -1 ${sample}_1.fastq.gz -2 ${sample}_2.fastq.gz - \
     > /dev/null 2>&1
     """
 }
@@ -33,7 +35,9 @@ process ALIGN_FASTQ {
 
     script:
     """
-    bwa mem -t ${task.cpus} -Y -R \"@RG\\tID:${sample}\\tSM:${sample}\\tPL:illumina\" -K 100000000 ${params.reference} ${fq1} ${fq2} \
+    bwa mem -t ${task.cpus} -Y \
+      -R \"@RG\\tID:${sample}\\tSM:${sample}\\tPL:illumina\" \
+      -K 100000000 ${params.reference} ${fq1} ${fq2} \
     | samblaster --addMateTags \
     | samtools view -b -h - \
     | samtools sort -@ ${task.cpus} -O BAM -o ${sample}.bam -
@@ -54,7 +58,8 @@ process GET_STATS {
 
     script:
     """
-    alignstats -i ${bam} -o ${sample}.stats.txt -p -W -P ${task.cpus} -t ${params.target_regions}
+    alignstats -i ${bam} -o ${sample}.stats.txt -p -W -P ${task.cpus} \
+        -t ${params.target_regions}
     """
 }
 
@@ -73,7 +78,8 @@ process CALL_SMALL_VARIANTS {
     def bam_files_str = bam_files.join(' ')
 
     """
-    freebayes-parallel <(awk '{{print \$1":"\$2"-"\$3}}' ${params.target_regions}) ${task.cpus} --fasta-reference ${params.reference} ${bam_files_str}  \
+    freebayes-parallel <(awk '{{print \$1":"\$2"-"\$3}}' ${params.target_regions}) \
+        ${task.cpus} --fasta-reference ${params.reference} ${bam_files_str}  \
     | vcffilter -f "QUAL > 1 & QUAL / AO > 10 & SAF > 0 & SAR > 0 & RPR > 1 & RPL > 1" -t "PASS" -F "FAIL" \
     > variants.vcf
     """
@@ -91,7 +97,8 @@ process LEFTALIGN_SPLIT {
 
     script:
     """
-    bcftools norm -a -d all -f ${params.reference} -m -both -Ov -o variants.norm.vcf variants.vcf.gz
+    bcftools norm -a -d all -f ${params.reference} -m -both -Ov \
+        -o variants.norm.vcf variants.vcf.gz
     """
 
 }
@@ -110,33 +117,10 @@ process CALCULATE_VARIANT_STATS {
 
     script:
     """
-    java -jar ${params.variantqc_jar} VariantQC -R ${params.reference} -ped ${pedigree_file} -V variants.norm.vcf.gz -O variant_qc.html
+    java -jar ${params.variantqc_jar} VariantQC -R ${params.reference} \
+        -ped ${pedigree_file} -V variants.norm.vcf.gz -O variant_qc.html
     """
 }
-
-// process VEP_ANNOTATE_VARIANTS {
-
-// }
-
-// process ANNOVAR_ANNOTATE_VARIANTS {
-
-// }
-
-// process INTERVAR_ANNOTATE_VARIANTS {
-
-// }
-
-// process AutoPVS1_ANNOTATE_VARIANTS {
-
-// }
-
-// process PREPARE_AutoGVP_INPUTS {
-
-// }
-
-// process CLASSIFY_VARIANTS {
-
-// }
 
 process PRIORITIZE_VARIANTS {
     tag "exomiser_prioritisation"
