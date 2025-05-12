@@ -1,6 +1,6 @@
 // Description: A Nextflow script to run a workflow that aligns a CRAM file using BWA-MEM.
 nextflow.enable.dsl = 2
-include { BGZIP_INDEX_VARIANTS as bgzip_index_raw; BGZIP_INDEX_VARIANTS as bgzip_index_standard } from "modules/index"
+include { BGZIP_INDEX_VARIANTS as bgzip_index_raw; BGZIP_INDEX_VARIANTS as bgzip_index_standard } from "./modules/index"
 
 process EXTRACT_FASTQ {
     tag "$sample"
