@@ -84,16 +84,33 @@ process BGZIP_INDEX_VARIANTS {
     publishDir 'results', mode: 'copy'
 
     input:
-    path "variants.vcf"
+    path vcf_file
 
     output:
-    tuple path("variants.vcf.gz"), path("variants.vcf.gz.tbi")
+    tuple path("${vcf_file}.gz"), path("${vcf_file}.gz.tbi")
 
     script:
     """
-    bgzip -@ ${task.cpus} variants.vcf
-    tabix variants.vcf.gz
+    bgzip -@ ${task.cpus} ${vcf_file}
+    tabix ${vcf_file}.gz
     """
+}
+
+process LEFTALIGN_SPLIT {
+    tag "standarize"
+    container "community.wave.seqera.io/library/bcftools:1.21--4335bec1d7b44d11"
+
+    input:
+    tuple path("variants.vcf.gz"), path("variants.vcf.gz.tbi")
+
+    output:
+    path "variants.norm.vcf"
+
+    script:
+    """
+    bcftools norm -a -D -d all -f ${params.reference} -m both -Ov -o variants.norm.vcf variants.vcf.gz
+    """
+
 }
 
 process CALCULATE_VARIANT_STATS {
@@ -220,11 +237,17 @@ workflow {
     // bgzip and index the variants
     zipped_variants_channel = BGZIP_INDEX_VARIANTS(variants_channel)
 
+    // left-align and normalize indels, split multiallelic sites
+    standardize_channel = LEFTALIGN_SPLIT(zipped_variants_channel)    
+
+    // bzgip and index the variants
+    zipped_standard_channel = BGZIP_INDEX_VARIANTS(standardize_channel)
+
     // collect some stats
-    CALCULATE_VARIANT_STATS(zipped_variants_channel, file(params.pedigree))
+    CALCULATE_VARIANT_STATS(zipped_standard_channel, file(params.pedigree))
 
     // prioritize the variants using exomiser
-    PRIORITIZE_VARIANTS(zipped_variants_channel,
+    PRIORITIZE_VARIANTS(zipped_standard_channel,
                         file(params.phenotype_file),
                         file(params.pedigree))
 
