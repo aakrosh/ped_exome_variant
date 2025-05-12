@@ -119,7 +119,7 @@ process PRIORITIZE_VARIANTS {
     analysis:
       genomeAssembly: ${params.genome_assembly}
       vcf: variants.vcf.gz
-      pedigree: ${params.pedigree}
+      ped: ${params.pedigree}
       proband: ${params.proband}
       hpoIds: [ \$(cat ${phenotype_file} | paste -sd, -) ]
       analysisMode: PASS_ONLY
@@ -134,11 +134,34 @@ process PRIORITIZE_VARIANTS {
         X_RECESSIVE_COMP_HET: 2.0,
         MITOCHONDRIAL: 0.2
       }
+    steps: [
+        variantEffectFilter: {
+            remove: [
+                FIVE_PRIME_UTR_EXON_VARIANT,
+                FIVE_PRIME_UTR_INTRON_VARIANT,
+                THREE_PRIME_UTR_EXON_VARIANT,
+                THREE_PRIME_UTR_INTRON_VARIANT,
+                NON_CODING_TRANSCRIPT_EXON_VARIANT,
+                UPSTREAM_GENE_VARIANT,
+                INTERGENIC_VARIANT,
+                REGULATORY_REGION_VARIANT,
+                CODING_TRANSCRIPT_INTRON_VARIANT,
+                NON_CODING_TRANSCRIPT_INTRON_VARIANT,
+                DOWNSTREAM_GENE_VARIANT
+            ]
+        },
+        frequencyFilter: {maxFrequency: 2.0},
+        pathogenicityFilter: {keepNonPathogenic: true},
+        inheritanceFilter: {},
+        omimPrioritiser: {},
+        priorityScoreFilter: {priorityType: HIPHIVE_PRIORITY, minPriorityScore: 0.501},
+        hiPhivePrioritiser: {},
+    ]
     outputOptions:
       outputContributingVariantsOnly: true
       numGenes: 20
       outputPrefix: exomiser_results/prioritized
-      outputFormats: [HTML, JSON, TSV, VCF]
+      outputFormats: [HTML, JSON, TSV_GENE, TSV_VARIANT, VCF]
     EOF
     
     # Create the output directory
