@@ -218,13 +218,13 @@ workflow {
     variants_channel = CALL_SMALL_VARIANTS(all_bams_for_calling)
 
     // bgzip and index the variants
-    zipped_variants_channel = BGZIP_INDEX_VARIANTS(variants_channel)
+    zipped_variants_channel = bgzip_index_raw(variants_channel)
 
     // left-align and normalize indels, split multiallelic sites
     standardize_channel = LEFTALIGN_SPLIT(zipped_variants_channel)    
 
     // bzgip and index the variants
-    zipped_standard_channel = BGZIP_INDEX_VARIANTS(standardize_channel)
+    zipped_standard_channel = bgzip_index_standard(standardize_channel)
 
     // collect some stats
     CALCULATE_VARIANT_STATS(zipped_standard_channel, file(params.pedigree))
