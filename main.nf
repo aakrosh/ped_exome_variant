@@ -117,47 +117,47 @@ process PRIORITIZE_VARIANTS {
     # Create an Exomiser analysis YAML configuration file
     cat > analysis.yml << EOF
     analysis:
-      genomeAssembly: ${params.genome_assembly}
-      vcf: variants.vcf.gz
-      ped: ${pedigree_file}
-      proband: ${params.proband}
-      hpoIds: [ \$(cat ${phenotype_file} | paste -sd, -) ]
-      analysisMode: PASS_ONLY
-      frequencySources: [THOUSAND_GENOMES, TOPMED, UK10K, GNOMAD_E_AFR, GNOMAD_E_AMR, GNOMAD_E_ASJ, GNOMAD_E_EAS, GNOMAD_E_FIN, GNOMAD_E_NFE, GNOMAD_E_OTH, GNOMAD_E_SAS, GNOMAD_G_AFR, GNOMAD_G_AMR, GNOMAD_G_ASJ, GNOMAD_G_EAS, GNOMAD_G_FIN, GNOMAD_G_NFE, GNOMAD_G_OTH, GNOMAD_G_SAS]
-      pathogenicitySources: [REVEL, MVP, CADD]
-      inheritanceModes: {
-        AUTOSOMAL_DOMINANT: 0.1,
-        AUTOSOMAL_RECESSIVE_HOM_ALT: 0.1,
-        AUTOSOMAL_RECESSIVE_COMP_HET: 2.0,
-        X_DOMINANT: 0.1,
-        X_RECESSIVE_HOM_ALT: 0.1,
-        X_RECESSIVE_COMP_HET: 2.0,
-        MITOCHONDRIAL: 0.2
-      }
-      steps: [
-        variantEffectFilter: {
-            remove: [
-                FIVE_PRIME_UTR_EXON_VARIANT,
-                FIVE_PRIME_UTR_INTRON_VARIANT,
-                THREE_PRIME_UTR_EXON_VARIANT,
-                THREE_PRIME_UTR_INTRON_VARIANT,
-                NON_CODING_TRANSCRIPT_EXON_VARIANT,
-                UPSTREAM_GENE_VARIANT,
-                INTERGENIC_VARIANT,
-                REGULATORY_REGION_VARIANT,
-                CODING_TRANSCRIPT_INTRON_VARIANT,
-                NON_CODING_TRANSCRIPT_INTRON_VARIANT,
-                DOWNSTREAM_GENE_VARIANT
-            ]
-        },
-        frequencyFilter: {maxFrequency: 2.0},
-        pathogenicityFilter: {keepNonPathogenic: true},
-        inheritanceFilter: {},
-        omimPrioritiser: {},
-        priorityScoreFilter: {priorityType: HIPHIVE_PRIORITY, minPriorityScore: 0.501},
-        hiPhivePrioritiser: {},
-      ]
-      outputOptions:
+        genomeAssembly: ${params.genome_assembly}
+        vcf: variants.vcf.gz
+        ped: ${pedigree_file}
+        proband: ${params.proband}
+        hpoIds: [ \$(cat ${phenotype_file} | paste -sd, -) ]
+        analysisMode: PASS_ONLY
+        frequencySources: [THOUSAND_GENOMES, TOPMED, UK10K, GNOMAD_E_AFR, GNOMAD_E_AMR, GNOMAD_E_ASJ, GNOMAD_E_EAS, GNOMAD_E_FIN, GNOMAD_E_NFE, GNOMAD_E_OTH, GNOMAD_E_SAS, GNOMAD_G_AFR, GNOMAD_G_AMR, GNOMAD_G_ASJ, GNOMAD_G_EAS, GNOMAD_G_FIN, GNOMAD_G_NFE, GNOMAD_G_OTH, GNOMAD_G_SAS]
+        pathogenicitySources: [REVEL, MVP, CADD]
+        inheritanceModes: {
+            AUTOSOMAL_DOMINANT: 0.1,
+            AUTOSOMAL_RECESSIVE_HOM_ALT: 0.1,
+            AUTOSOMAL_RECESSIVE_COMP_HET: 2.0,
+            X_DOMINANT: 0.1,
+            X_RECESSIVE_HOM_ALT: 0.1,
+            X_RECESSIVE_COMP_HET: 2.0,
+            MITOCHONDRIAL: 0.2
+        }
+        steps: [
+            variantEffectFilter: {
+                remove: [
+                    FIVE_PRIME_UTR_EXON_VARIANT,
+                    FIVE_PRIME_UTR_INTRON_VARIANT,
+                    THREE_PRIME_UTR_EXON_VARIANT,
+                    THREE_PRIME_UTR_INTRON_VARIANT,
+                    NON_CODING_TRANSCRIPT_EXON_VARIANT,
+                    UPSTREAM_GENE_VARIANT,
+                    INTERGENIC_VARIANT,
+                    REGULATORY_REGION_VARIANT,
+                    CODING_TRANSCRIPT_INTRON_VARIANT,
+                    NON_CODING_TRANSCRIPT_INTRON_VARIANT,
+                    DOWNSTREAM_GENE_VARIANT
+                ]
+            },
+            frequencyFilter: {maxFrequency: 2.0},
+            pathogenicityFilter: {keepNonPathogenic: true},
+            inheritanceFilter: {},
+            omimPrioritiser: {},
+            priorityScoreFilter: {priorityType: HIPHIVE_PRIORITY, minPriorityScore: 0.501},
+            hiPhivePrioritiser: {},
+        ]
+    outputOptions:
         outputContributingVariantsOnly: true
         numGenes: 20
         outputPrefix: exomiser_results/prioritized
