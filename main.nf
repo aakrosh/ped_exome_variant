@@ -114,6 +114,30 @@ process CALCULATE_VARIANT_STATS {
     """
 }
 
+process VEP_ANNOTATE_VARIANTS {
+
+}
+
+process ANNOVAR_ANNOTATE_VARIANTS {
+
+}
+
+process INTERVAR_ANNOTATE_VARIANTS {
+
+}
+
+process AutoPVS1_ANNOTATE_VARIANTS {
+
+}
+
+process PREPARE_AutoGVP_INPUTS {
+
+}
+
+process CLASSIFY_VARIANTS {
+
+}
+
 process PRIORITIZE_VARIANTS {
     tag "exomiser_prioritisation"
     container "openjdk:21-jdk"
@@ -220,14 +244,14 @@ workflow {
     // bgzip and index the variants
     zipped_variants_channel = bgzip_index_raw(variants_channel)
 
+    // collect some stats
+    CALCULATE_VARIANT_STATS(zipped_variants_channel, file(params.pedigree))
+
     // left-align and normalize indels, split multiallelic sites
     standardize_channel = LEFTALIGN_SPLIT(zipped_variants_channel)    
 
     // bzgip and index the variants
     zipped_standard_channel = bgzip_index_standard(standardize_channel)
-
-    // collect some stats
-    CALCULATE_VARIANT_STATS(zipped_standard_channel, file(params.pedigree))
 
     // prioritize the variants using exomiser
     PRIORITIZE_VARIANTS(zipped_standard_channel,
