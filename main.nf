@@ -98,7 +98,7 @@ process BGZIP_INDEX_VARIANTS {
 
 process PRIORITIZE_VARIANTS {
     tag "exomiser_prioritisation"
-    container "openjdk:11-jre"  // Container with Java 11+
+    container "openjdk:17-jre-slim"  // Container with Java 17+
     publishDir 'results/prioritized_variants', mode: 'copy'
     
     input:
