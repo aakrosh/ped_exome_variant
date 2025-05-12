@@ -96,6 +96,24 @@ process BGZIP_INDEX_VARIANTS {
     """
 }
 
+process CALCULATE_VARIANT_STATS {
+    tag "variant stats"
+    container "openjdk:21-jdk"
+    publishDir 'results', mode: 'copy'
+
+    input:
+    tuple path("variants.vcf.gz"), path("variants.vcf.gz.tbi")
+    path pedigree_file
+
+    output:
+    path "variant_qc.html"
+
+    script:
+    """
+    java -jar ${params.variantqc_jar} VariantQC -R ${params.reference} -ped ${pedigree_file} -V variants.vcf.gz -O variant_qc.html
+    """
+}
+
 process PRIORITIZE_VARIANTS {
     tag "exomiser_prioritisation"
     container "openjdk:21-jdk"
@@ -201,6 +219,9 @@ workflow {
 
     // bgzip and index the variants
     zipped_variants_channel = BGZIP_INDEX_VARIANTS(variants_channel)
+
+    // collect some stats
+    CALCULATE_VARIANT_STATS(zipped_variants_channel, file(params.pedigree))
 
     // prioritize the variants using exomiser
     PRIORITIZE_VARIANTS(zipped_variants_channel,
