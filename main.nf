@@ -114,29 +114,29 @@ process CALCULATE_VARIANT_STATS {
     """
 }
 
-process VEP_ANNOTATE_VARIANTS {
+// process VEP_ANNOTATE_VARIANTS {
 
-}
+// }
 
-process ANNOVAR_ANNOTATE_VARIANTS {
+// process ANNOVAR_ANNOTATE_VARIANTS {
 
-}
+// }
 
-process INTERVAR_ANNOTATE_VARIANTS {
+// process INTERVAR_ANNOTATE_VARIANTS {
 
-}
+// }
 
-process AutoPVS1_ANNOTATE_VARIANTS {
+// process AutoPVS1_ANNOTATE_VARIANTS {
 
-}
+// }
 
-process PREPARE_AutoGVP_INPUTS {
+// process PREPARE_AutoGVP_INPUTS {
 
-}
+// }
 
-process CLASSIFY_VARIANTS {
+// process CLASSIFY_VARIANTS {
 
-}
+// }
 
 process PRIORITIZE_VARIANTS {
     tag "exomiser_prioritisation"
