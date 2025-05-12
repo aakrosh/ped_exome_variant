@@ -116,7 +116,6 @@ process PRIORITIZE_VARIANTS {
     """
     # Create an Exomiser analysis YAML configuration file
     cat > analysis.yml << EOF
-    ---
     analysis:
       genomeAssembly: ${params.genome_assembly}
       vcf: variants.vcf.gz
@@ -135,7 +134,7 @@ process PRIORITIZE_VARIANTS {
         X_RECESSIVE_COMP_HET: 2.0,
         MITOCHONDRIAL: 0.2
       }
-    steps: [
+      steps: [
         variantEffectFilter: {
             remove: [
                 FIVE_PRIME_UTR_EXON_VARIANT,
@@ -157,12 +156,12 @@ process PRIORITIZE_VARIANTS {
         omimPrioritiser: {},
         priorityScoreFilter: {priorityType: HIPHIVE_PRIORITY, minPriorityScore: 0.501},
         hiPhivePrioritiser: {},
-    ]
-    outputOptions:
-      outputContributingVariantsOnly: true
-      numGenes: 20
-      outputPrefix: exomiser_results/prioritized
-      outputFormats: [HTML, JSON, TSV_GENE, TSV_VARIANT, VCF]
+      ]
+      outputOptions:
+        outputContributingVariantsOnly: true
+        numGenes: 20
+        outputPrefix: exomiser_results/prioritized
+        outputFormats: [HTML, JSON, TSV_GENE, TSV_VARIANT, VCF]
     EOF
     
     # Create the output directory
