@@ -1,5 +1,6 @@
 // Description: A Nextflow script to run a workflow that aligns a CRAM file using BWA-MEM.
 nextflow.enable.dsl = 2
+include { BGZIP_INDEX_VARIANTS as bgzip_index_raw; BGZIP_INDEX_VARIANTS as bgzip_index_standard } from "modules/index"
 
 process EXTRACT_FASTQ {
     tag "$sample"
@@ -75,24 +76,6 @@ process CALL_SMALL_VARIANTS {
     freebayes-parallel <(awk '{{print \$1":"\$2"-"\$3}}' ${params.target_regions}) ${task.cpus} --fasta-reference ${params.reference} ${bam_files_str}  \
     | vcffilter -f "QUAL > 1 & QUAL / AO > 10 & SAF > 0 & SAR > 0 & RPR > 1 & RPL > 1" -t "PASS" -F "FAIL" \
     > variants.vcf
-    """
-}
-
-process BGZIP_INDEX_VARIANTS {
-    tag "bgzip tabix"
-    container 'community.wave.seqera.io/library/htslib:1.21--ff8e28a189fbecaa'
-    publishDir 'results', mode: 'copy'
-
-    input:
-    path vcf_file
-
-    output:
-    tuple path("${vcf_file}.gz"), path("${vcf_file}.gz.tbi")
-
-    script:
-    """
-    bgzip -@ ${task.cpus} ${vcf_file}
-    tabix ${vcf_file}.gz
     """
 }
 

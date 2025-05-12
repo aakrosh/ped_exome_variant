@@ -5,7 +5,9 @@ This workflow takes as input CRAM files from related individuals that includes a
 4. Runs Exomiser to prioritise the variants.
 
 ## Running the workflow
+```{bash}
 nextflow -c nextflow.config -profile uva -params-file params.yml run aakrosh/ped_exome_variant -resume 
+```
 
 ## Notes
 This workflow is not ready for public consumption.
