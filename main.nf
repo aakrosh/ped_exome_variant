@@ -91,7 +91,7 @@ process LEFTALIGN_SPLIT {
 
     script:
     """
-    bcftools norm -a -d all -f ${params.reference} -m both -Ov -o variants.norm.vcf variants.vcf.gz
+    bcftools norm -a -d all -f ${params.reference} -m -both -Ov -o variants.norm.vcf variants.vcf.gz
     """
 
 }
