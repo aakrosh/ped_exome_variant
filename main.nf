@@ -102,7 +102,7 @@ process CALCULATE_VARIANT_STATS {
     publishDir 'results', mode: 'copy'
 
     input:
-    tuple path("variants.vcf.gz"), path("variants.vcf.gz.tbi")
+    tuple path("variants.norm.vcf.gz"), path("variants.norm.vcf.gz.tbi")
     path pedigree_file
 
     output:
@@ -110,7 +110,7 @@ process CALCULATE_VARIANT_STATS {
 
     script:
     """
-    java -jar ${params.variantqc_jar} VariantQC -R ${params.reference} -ped ${pedigree_file} -V variants.vcf.gz -O variant_qc.html
+    java -jar ${params.variantqc_jar} VariantQC -R ${params.reference} -ped ${pedigree_file} -V variants.norm.vcf.gz -O variant_qc.html
     """
 }
 
@@ -120,7 +120,7 @@ process PRIORITIZE_VARIANTS {
     publishDir 'results', mode: 'copy'
     
     input:
-    tuple path("variants.vcf.gz"), path("variants.vcf.gz.tbi") 
+    tuple path("variants.norm.vcf.gz"), path("variants.norm.vcf.gz.tbi") 
     path phenotype_file  // A file containing HPO terms
     path pedigree_file
     
@@ -138,7 +138,7 @@ process PRIORITIZE_VARIANTS {
     cat > analysis.yml << EOF
     analysis:
         genomeAssembly: ${params.genome_assembly}
-        vcf: variants.vcf.gz
+        vcf: variants.norm.vcf.gz
         ped: ${pedigree_file}
         proband: ${params.proband}
         hpoIds: [ \$(cat ${phenotype_file} | paste -sd, -) ]
