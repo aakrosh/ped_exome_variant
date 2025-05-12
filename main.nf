@@ -121,7 +121,7 @@ process PRIORITIZE_VARIANTS {
       vcf: variants.vcf.gz
       pedigree: ${params.pedigree}
       proband: ${params.proband}
-      hpoIds: \$(cat ${phenotype_file} | paste -sd, -)
+      hpoIds: [ \$(cat ${phenotype_file} | paste -sd, -) ]
       analysisMode: PASS_ONLY
       frequencySources: [THOUSAND_GENOMES, TOPMED, UK10K, GNOMAD_E_AFR, GNOMAD_E_AMR, GNOMAD_E_ASJ, GNOMAD_E_EAS, GNOMAD_E_FIN, GNOMAD_E_NFE, GNOMAD_E_OTH, GNOMAD_E_SAS, GNOMAD_G_AFR, GNOMAD_G_AMR, GNOMAD_G_ASJ, GNOMAD_G_EAS, GNOMAD_G_FIN, GNOMAD_G_NFE, GNOMAD_G_OTH, GNOMAD_G_SAS]
       pathogenicitySources: [REVEL, MVP, CADD]
