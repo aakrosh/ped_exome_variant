@@ -99,7 +99,7 @@ process BGZIP_INDEX_VARIANTS {
 process PRIORITIZE_VARIANTS {
     tag "exomiser_prioritisation"
     container "openjdk:21-jdk"
-    publishDir 'results/prioritized_variants', mode: 'copy'
+    publishDir 'results', mode: 'copy'
     
     input:
     tuple path("variants.vcf.gz"), path("variants.vcf.gz.tbi") 
@@ -107,10 +107,12 @@ process PRIORITIZE_VARIANTS {
     path pedigree_file
     
     output:
-    path "exomiser_results/*.html"
-    path "exomiser_results/*.json"
-    path "exomiser_results/*.tsv"
-    path "exomiser_results/*.vcf"
+    path "exomiser_results/prioritized.html"
+    path "exomiser_results/prioritized.json"
+    path "exomiser_results/prioritized.genes.tsv"
+    path "exomiser_results/prioritized.variants.tsv"
+    path "exomiser_results/prioritized.vcf.gz"
+    path "exomiser_results/prioritized.vcf.gz.tbi"
     
     script:
     """
