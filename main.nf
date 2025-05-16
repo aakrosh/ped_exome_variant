@@ -98,7 +98,8 @@ process LEFTALIGN_SPLIT {
     script:
     """
     bcftools norm -a -d all -f ${params.reference} -m -both -Ov \
-        -o variants.norm.vcf variants.vcf.gz
+        variants.vcf.gz \
+    | bcftools view --trim-alt-alleles -Ov -o variants.norm.vcf
     """
 
 }
