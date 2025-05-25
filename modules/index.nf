@@ -1,4 +1,4 @@
-process BGZIP_INDEX_VARIANTS {
+process bgzip_index_variants {
     tag "bgzip tabix"
     container 'community.wave.seqera.io/library/htslib:1.21--ff8e28a189fbecaa'
     publishDir 'results', mode: 'copy'
