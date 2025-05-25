@@ -69,10 +69,10 @@ process call_small_variants {
     container 'community.wave.seqera.io/library/freebayes:1.3.9--8b4bf7c06d07bf77'
 
     input:
-    path bams_and_bais 
+    path(bams_and_bais)
 
     output:
-    path "variants.vcf"
+    path("variants.vcf")
 
     script:
     def bam_files = bams_and_bais.findAll { it.name.endsWith('.bam') }
@@ -91,11 +91,11 @@ process filter_variants {
     container "community.wave.seqera.io/library/bcftools:1.21--4335bec1d7b44d11"
 
     input:
-    path vcf
-    path exclude_bed
+    path(vcf)
+    path(exclude_bed)
 
     output:
-    path "${vcf.simpleName}.flt.vcf"
+    path("${vcf.simpleName}.flt.vcf")
 
     script:
     """
@@ -114,10 +114,10 @@ process calculate_variant_stats {
 
     input:
     tuple path(vcf), path(tbi)
-    path pedigree_file
+    path(pedigree_file)
 
     output:
-    path "variant_qc.html"
+    path("variant_qc.html")
 
     script:
     """
@@ -135,7 +135,7 @@ process leftalign_split {
     tuple path(vcf), path(tbi)
 
     output:
-    path "${vcf.baseName}.norm.vcf"
+    path("${vcf.baseName}.norm.vcf")
 
     script:
     """
@@ -151,16 +151,16 @@ process prioritize_variants {
     
     input:
     tuple path("variants.norm.vcf.gz"), path("variants.norm.vcf.gz.tbi") 
-    path phenotype_file  // A file containing HPO terms
-    path pedigree_file
+    path(phenotype_file)  // A file containing HPO terms
+    path(pedigree_file)
     
     output:
-    path "exomiser_results/prioritized.html"
-    path "exomiser_results/prioritized.json"
-    path "exomiser_results/prioritized.genes.tsv"
-    path "exomiser_results/prioritized.variants.tsv"
-    path "exomiser_results/prioritized.vcf.gz"
-    path "exomiser_results/prioritized.vcf.gz.tbi"
+    path("exomiser_results/prioritized.html")
+    path("exomiser_results/prioritized.json")
+    path("exomiser_results/prioritized.genes.tsv")
+    path("exomiser_results/prioritized.variants.tsv")
+    path("exomiser_results/prioritized.vcf.gz")
+    path("exomiser_results/prioritized.vcf.gz.tbi")
     
     script:
     """
@@ -251,7 +251,7 @@ process partition_variants {
     tuple path(vcf), path(tbi)
 
     output:
-    path '*.vcf'
+    path('*.vcf')
 
     script:
     """
@@ -282,10 +282,10 @@ process annotate_vep {
     container 'ensemblorg/ensembl-vep:release_114.0'
 
     input:
-    path vcf 
+    path(vcf)
    
     output:
-    path "${vcf.simpleName}.vep.vcf"
+    tuple val("${vcf.baseName}"), val("VEP"), path("${vcf.simpleName}.vep.vcf")
 
     script:
     """
@@ -303,27 +303,19 @@ process annotate_annovar {
     tag "Annovar"
 
     input:
-    path vcf
- 
+    tuple val(sample), val(type), path(vcf)
+
     output:
-    path "${vcf.simpleName}.${params.genome_assembly == 'GRCh38' ? 'hg38' : 'hg19'}_multianno.txt" 
+    tuple val(sample), val("ANNOVAR"), path("${sample}.*_multianno.txt")
 
     script:
-    if (params.genome_assembly == "GRCh38") {
-        """
-        perl ${params.annovar_dir}/table_annovar.pl ${vcf} \
-            ${params.annovar_database} --buildver hg38 --out ${vcf.simpleName} \
-            --remove --protocol gnomad211_exome,gnomad211_genome --operation f,f \
-            --vcfinput --thread ${task.cpus}
-        """
-    } else {
-        """
-        perl ${params.annovar_dir}/table_annovar.pl ${vcf} \
-            ${params.annovar_database} --buildver hg19 --out ${vcf.simpleName} \
-            --remove --protocol gnomad211_exome,gnomad211_genome --operation f,f \
-            --vcfinput --thread ${task.cpus}
-        """
-    }
+    def suffix = params.genome_assembly == 'GRCh38' ? 'hg38' : 'hg19'
+    """
+    perl ${params.annovar_dir}/table_annovar.pl ${vcf} \
+        ${params.annovar_database} --buildver ${suffix} --out ${sample} \
+        --remove --protocol gnomad211_exome,gnomad211_genome --operation f,f \
+        --vcfinput --thread ${task.cpus}
+    """
 }
 
 process annotate_intervar {
@@ -331,32 +323,21 @@ process annotate_intervar {
     container 'aakrosh/intervar:latest'
 
     input:
-    path vcf
+    tuple val(sample), val(type), path(vcf)
 
     output:
-    path "${vcf.simpleName}.${params.genome_assembly == 'GRCh38' ? 'hg38' : 'hg19'}_multianno.txt.intervar"
-
+    tuple val(sample), val("INTERVAR"), path("${vcf.simpleName}.*_multianno.txt.intervar")
 
     script:
-    if (params.genome_assembly == "GRCh38") {
-        """
-        /usr/bin/python3 /Intervar.py -b hg38 -i ${vcf} --input_type=VCF \
-            -o ${vcf.simpleName} -t ${params.intervar_database} \
-            --table_annovar ${params.annovar_dir}/table_annovar.pl \
-            --database_locat ${params.annovar_database} \
-            --convert2annovar ${params.annovar_dir}/convert2annovar.pl \
-            --annotate_variation ${params.annovar_dir}/annotate_variation.pl
-        """
-    } else {
-        """
-        /usr/bin/python3 /Intervar.py -b hg19 -i ${vcf} --input_type=VCF \
-            -o ${vcf.simpleName} -t ${params.intervar_database} \
-            --table_annovar ${params.annovar_dir}/table_annovar.pl \
-            --database_locat ${params.annovar_database} \
-            --convert2annovar ${params.annovar_dir}/convert2annovar.pl \
-            --annotate_variation ${params.annovar_dir}/annotate_variation.pl
-        """
-    } 
+    def suffix = params.genome_assembly == 'GRCh38' ? 'hg38' : 'hg19'
+    """
+    /usr/bin/python3 /Intervar.py -b ${suffix} -i ${vcf} --input_type=VCF \
+        -o ${vcf.simpleName} -t ${params.intervar_database} \
+        --table_annovar ${params.annovar_dir}/table_annovar.pl \
+        --database_locat ${params.annovar_database} \
+        --convert2annovar ${params.annovar_dir}/convert2annovar.pl \
+        --annotate_variation ${params.annovar_dir}/annotate_variation.pl
+    """
 }
 
 process annotate_autopvs1 {
@@ -364,25 +345,20 @@ process annotate_autopvs1 {
     container 'aakrosh/autopvs1:latest'    
 
     input:
-    path vcf
-    path autopvs1_data
-    path autopvs1_config
+    tuple val(sample), val(type), path(vcf)
+    path(autopvs1_data)
+    path(autopvs1_config)
 
     output:
-    path "${vcf.simpleName}.autopvs1.txt"
+    tuple val(sample), val("AUTOPVS1"), path("${vcf.simpleName}.autopvs1.txt")
 
     script:
-    if (params.genome_assembly == "GRCh38") {
-        """
-        /usr/bin/python3 /autopvs1/autoPVS1_from_VEP_vcf.py --genome_version hg38 \
-            --vep_vcf ${vcf} > ${vcf.simpleName}.autopvs1.txt
-        """
-    } else {
-        """
-        /usr/bin/python3 /autopvs1/autoPVS1_from_VEP_vcf.py --genome_version hg19 \
-            --vep_vcf ${vcf} > ${vcf.simpleName}.autopvs1.txt
-        """
-    }
+    def suffix = params.genome_assembly == 'GRCh38' ? 'hg38' : 'hg19'
+    """
+    /usr/bin/python3 /autopvs1/autoPVS1_from_VEP_vcf.py \
+        --genome_version ${suffix} \
+        --vep_vcf ${vcf} > ${vcf.simpleName}.autopvs1.txt
+    """
 }
 
 process select_clinvar {
@@ -391,7 +367,7 @@ process select_clinvar {
     containerOptions = { "--bind ${params.autogvp_dir}:/home/rstudio/AutoGVP" }
 
     output:
-    path "ClinVar-selected-submissions.tsv"
+    path("ClinVar-selected-submissions.tsv")
 
     script:
     """
@@ -411,14 +387,12 @@ process run_autogvp {
     publishDir 'results', mode: 'copy'
    
     input:
-    path vep_file
-    path annovar_file
-    path intervar_file
-    path autopvs1_file
-    path clinvar_file
+    tuple val(sample), path(vep_file), path(annovar_file), 
+            path(intervar_file), path(autopvs1_file)
+    path(clinvar_file)
 
     output:
-    path "${vep_file.baseName}*"
+    path("${vep_file.baseName}*")
 
     script:
     """
@@ -522,7 +496,26 @@ workflow {
         .set { clinvar_channel }
 
     // run the AutoGVP workflow
-    run_autogvp(vep_annotated_channel, annovar_output_channel, 
-                intervar_output_channel, autopvs1_output_channel, clinvar_channel)
+    all_outputs = vep_annotated_channel
+        .mix(annovar_output_channel)
+        .mix(intervar_output_channel)
+        .mix(autopvs1_output_channel)
+        .map { sample, tool, file -> tuple(sample, tuple(tool, file)) }
+
+    grouped = all_outputs
+        .groupTuple()
+        .map { sample, records ->
+            def file_map = records.collectEntries { [(it[0]): it[1]] }
+            def vep      = file_map.get('VEP')
+            def annovar  = file_map.get('ANNOVAR')
+            def intervar = file_map.get('INTERVAR')
+            def autopvs1 = file_map.get('AUTOPVS1')
+
+            if ([vep, annovar, intervar, autopvs1].any { it == null }) return null
+            return tuple(sample, vep, annovar, intervar, autopvs1)
+        }
+        .filter { it != null }
+
+    run_autogvp(grouped, clinvar_channel)
 
 }
